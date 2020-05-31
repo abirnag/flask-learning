@@ -1,7 +1,5 @@
 import sqlite3
-from flask_restful import Resource,reqparse
-
-class User:
+class UserModel:
     def __init__(self,_id, username, password):
         self.id = _id
         self.username=username
@@ -45,18 +43,3 @@ class User:
         connection.commit()
         connection.close()
         return True
-
-
-
-class UserRegister(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument("username",type=str,required=True,help='username should not be blank')
-    parser.add_argument("password",type=str,required=True,help='password should not be blank')
-    def post(self):
-        data= UserRegister.parser.parse_args()
-        if User.create_user(data):
-            return {"message":"User is created"},201
-        return {"message":"User[{}] is already exist.".format(data['username'])}
-
-    
-    
