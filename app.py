@@ -15,9 +15,6 @@ api = Api(app)
 jwt = JWT(app,authenticate,identity)  #/auth
 
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
 
 
 api.add_resource(Item,'/items/<string:name>')
@@ -25,6 +22,8 @@ api.add_resource(UserRegister,'/register')
 api.add_resource(ItemList,'/items')
 api.add_resource(Store,'/stores/<string:name>')
 api.add_resource(StoreList,'/stores')
+
+
 if __name__ =='__main__':
     from db import db
     db.init_app(app)
