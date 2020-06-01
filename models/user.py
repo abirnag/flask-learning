@@ -1,5 +1,10 @@
-import sqlite3
-class UserModel:
+from db import db
+
+class UserModel(db.Model):
+    __tablename__='users'
+    id = db.Column(db.Integer,primary_key=True)
+    username = db.Column(db.String(80),unique=True,nullable=False)
+    password = db.Column(db.String(80),nullable=False)
     def __init__(self,_id, username, password):
         self.id = _id
         self.username=username
@@ -7,39 +12,17 @@ class UserModel:
     
     @classmethod
     def find_by_username(cls,username):
-        connection = sqlite3.connect('data.db')
-        cursor =connection.cursor()
-        query = "select * from users where username=?"
-        result = cursor.execute(query,(username,))
-        row = result.fetchone()
-        if row : 
-            user=cls(*row)
-        else:
-            user=None
-        connection.close()
-        return user
+        return cls.query.filter_by(username=username).first()
     @classmethod
     def find_by_id(cls,_id):
-        connection = sqlite3.connect('data.db')
-        cursor =connection.cursor()
-        query = "select * from users where id=?"
-        result = cursor.execute(query,(_id,))
-        row = result.fetchone()
-        if row : 
-            user=cls(*row)
-        else:
-            user=None
-        connection.close()
-        return user
+        return cls.query.filter_by(id=_id).first()
+        
 
     @classmethod
     def create_user(cls, data):
-        if cls.find_by_username(data['username']):
+        user  =cls.query.filter_by(username=data['username']).first()
+        if user:
             return False
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
-        create_user_query = "INSERT INTO USERS VALUES(NULL,?,?)"
-        cursor.execute(create_user_query,(data['username'], data['password'],))
-        connection.commit()
-        connection.close()
+        db.session.add(cls(None,data['username'], data['password']))
+        db.session.commit()
         return True

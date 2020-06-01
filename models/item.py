@@ -1,52 +1,48 @@
-from db import Db
+from db import db
 
 
-db = Db()
 
-class ItemModel:
+class ItemModel(db.Model):
+    __tablename__='ITEMS'
+    name = db.Column(db.String(80), primary_key=True)
+    price= db.Column(db.Float(precision=2))
+    store_id=db.Column(db.Integer,db.ForeignKey('stores.id'))
+    store =db.relationship('StoreModel')
     def __init__(self,**args):
         self.name=args['name']
         self.price =args['price']
+        self.store_id=args['store_id']
     @classmethod
     def saveItem(cls,data):
-        create_item_query = "INSERT INTO ITEMS VALUES(?,?)"
-        res= db.execute_and_commit(create_item_query,data.name, data.price)
-        print(res)
-        db.connection_close()
+        db.session.add(data)
+        db.session.commit()
         return True
     @classmethod
     def findItemByName(cls,name):
-        select_query = "SELECT * FROM ITEMS WHERE name=?"
-        res=db.execute_and_commit(select_query,name)
-        item = res.fetchone()
-        db.connection_close()
-        if item : 
-            return ItemModel(name=item[0], price = item[1])
-        else:
-            return None
+        return cls.query.filter_by(name=name).first()
     @classmethod
     def update(cls, data):
-        update_query = "UPDATE ITEMS SET PRICE=? WHERE NAME=?"
-        res = db.execute_and_commit(update_query,data.price,data.name)
-        item = res.fetchone()
-        db.connection_close()
-        if item : 
-            return ItemModel(name=item[0], price = item[1])
+        item = cls.findItemByName(data.name)
+        if item:
+            item.price=data.price
         else:
-            return None
+            item= ItemModel(name=data.name, price=data.price)
+        db.session.add(item)
+        db.session.commit()
+
+
         
 
     @classmethod
     def remove(cls,data):
-        db.execute_and_commit("DELETE FROM ITEMS WHERE NAME=?",data.name)
-        db.connection_close()
+        item = cls.findItemByName(data.name)
+        if item:
+            db.session.delete(item)
+            db.session.commit()
     
     @classmethod
     def findAll(cls):
-        res = db.execute_and_commit("SELECT * FROM ITEMS")
-        result = list(map(lambda row: ItemModel(name=row[0],price=row[1]).json(),res))
-        db.connection_close()
-        return result
+        return list(map(lambda  x :x.json(), cls.query.all()))
 
     def json(self):
         return {'name':self.name,'price':self.price}

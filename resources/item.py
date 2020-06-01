@@ -4,13 +4,10 @@ from .user import UserRegister
 from security import authenticate,identity
 from models.item import ItemModel
 
-
-
-
-
 class Item(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('price',type=float, required=True, help='Field should contain value')
+    parser.add_argument('store_id',type=int, required=True, help='Field should contain value')
     
     @jwt_required()
     def get(self, name):
@@ -23,7 +20,7 @@ class Item(Resource):
         data= Item.parser.parse_args() 
         filteredItem = ItemModel.findItemByName(name)
         if filteredItem==None:
-            item =ItemModel(name=name, price= data['price'])
+            item =ItemModel(name=name, price= data['price'],store_id=data['store_id'])
             ItemModel.saveItem(item)
             return item.json(),201
         else: 
@@ -33,11 +30,11 @@ class Item(Resource):
         data= Item.parser.parse_args()       
         filteredItem = ItemModel.findItemByName(name)
         if filteredItem==None:
-            item =ItemModel(name=name, price= data['price'])
+            item =ItemModel(name=name, price= data['price'],store_id=data['store_id'])
             ItemModel.saveItem(item)
             return {"message":"item is created"},201
         else: 
-            item =ItemModel(name=name, price= data['price'])
+            item =ItemModel(name=name, price= data['price'],store_id=data['store_id'])
             item=ItemModel.update(item)
             return {"message":"item is updated"}
     def delete(self,name):
